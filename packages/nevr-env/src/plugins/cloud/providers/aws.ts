@@ -192,7 +192,7 @@ export const aws = createPlugin({
     const prompts: Record<string, PromptConfig> = {
       [varNames.accessKeyId]: {
         message: "Enter your AWS Access Key ID",
-        placeholder: "AKIAIOSFODNN7EXAMPLE",
+        placeholder: "your-access-key-id",
         type: "text",
         validate: (val) => {
           if (!/^[A-Z0-9]+$/.test(val)) {
@@ -206,7 +206,7 @@ export const aws = createPlugin({
       },
       [varNames.secretAccessKey]: {
         message: "Enter your AWS Secret Access Key",
-        placeholder: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        placeholder: "your-secret-access-key",
         type: "password",
       },
       [varNames.region]: {
