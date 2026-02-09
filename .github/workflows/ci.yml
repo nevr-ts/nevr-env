@@ -94,4 +94,4 @@ jobs:
         run: pnpm build
 
       - name: Scan for leaked secrets
-        run: node packages/cli/dist/index.js scan --path . --exclude node_modules dist .turbo
+        run: node packages/cli/dist/index.js scan --path . --exclude node_modules dist .turbo docs examples
