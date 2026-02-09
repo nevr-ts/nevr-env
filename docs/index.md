@@ -6,7 +6,7 @@ hero:
   text: Type-Safe Environment Variables
   tagline: Powerful validation, plugin ecosystem, auto-discovery, and developer-friendly CLI
   image:
-    src: /logo.svg
+    src: /nevr-env.png
     alt: nevr-env
   actions:
     - theme: brand
@@ -59,5 +59,15 @@ features:
   :root {
     --vp-home-hero-image-filter: blur(68px);
   }
+}
+@media (min-width: 600px) {
+ .image-container img{
+  max-width: 100%!important;
+  height: auto;
+  margin-top: 2rem;
+   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}}
+.heading>.text{
+  font-size: 3rem!important;
 }
 </style>
