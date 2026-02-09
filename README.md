@@ -15,17 +15,6 @@ Type-safe environment validation with an interactive CLI, encrypted vault, plugi
 
 </div>
 
----
-
-## Ecosystem
-
-| Package | Description |
-|---------|-------------|
-| [`nevr-env`](https://www.npmjs.com/package/nevr-env) | The umbrella package — includes everything: core, plugins, presets, vault, and CLI |
-| [`@nevr-env/core`](https://www.npmjs.com/package/@nevr-env/core) | Core engine — `createEnv`, `createPlugin`, Proxy, Standard Schema validation |
-| [`@nevr-env/cli`](https://www.npmjs.com/package/@nevr-env/cli) | Interactive CLI — fix wizard, scanner, vault, schema diff, and 12 more commands |
-
-> **Most users should install `nevr-env`** — it re-exports everything from core and CLI in one package.
 
 ---
 
@@ -261,6 +250,16 @@ env.DATABASE_URL // ✅ fully typed
 | Rotation tracking | ✅ | ❌ | ❌ | ❌ |
 | CI/CD config generation | ✅ 5 platforms | ❌ | ❌ | ❌ |
 | Standard Schema support | ✅ | ✅ | ❌ | ❌ |
+
+---
+
+## Ecosystem
+
+| Package | Description |
+|---------|-------------|
+| [`nevr-env`](https://www.npmjs.com/package/nevr-env) | The umbrella package — includes everything: core, plugins, presets, vault, and CLI |
+| [`@nevr-env/core`](https://www.npmjs.com/package/@nevr-env/core) | Core engine — `createEnv`, `createPlugin`, Proxy, Standard Schema validation |
+| [`@nevr-env/cli`](https://www.npmjs.com/package/@nevr-env/cli) | Interactive CLI — fix wizard, scanner, vault, schema diff, and 12 more commands |
 
 ## Contributing
 
