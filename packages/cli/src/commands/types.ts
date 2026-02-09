@@ -1,0 +1,310 @@
+/**
+ * `nevr types` command
+ *
+ * Generate TypeScript type definitions from the schema.
+ * Useful for non-TypeScript projects or custom type generation.
+ *
+ * @example
+ * ```bash
+ * nevr types
+ * nevr types --output ./env.d.ts
+ * ```
+ */
+
+import { Command } from "commander";
+import * as p from "@clack/prompts";
+import pc from "picocolors";
+import { existsSync, writeFileSync } from "fs";
+import { join } from "path";
+import {
+  findConfigFile,
+  loadConfigFile,
+  extractSchemaFromConfig,
+} from "../utils/config";
+
+interface TypesOptions {
+  cwd: string;
+  config?: string;
+  output?: string;
+  namespace?: string;
+  force?: boolean;
+}
+
+/**
+ * Infer TypeScript type from Zod schema (simplified)
+ */
+function inferTypeFromSchema(schema: unknown): string {
+  if (!schema || typeof schema !== "object") {
+    return "string";
+  }
+
+  const s = schema as Record<string, unknown>;
+
+  // Check for _def (Zod internal structure)
+  if (s._def && typeof s._def === "object") {
+    const def = s._def as Record<string, unknown>;
+
+    // Handle literals
+    if (def.value !== undefined) {
+      return typeof def.value === "string"
+        ? `"${def.value}"`
+        : String(def.value);
+    }
+
+    // Handle enums
+    if (def.values && Array.isArray(def.values)) {
+      return def.values.map((v) => `"${v}"`).join(" | ");
+    }
+
+    // Handle optional
+    if (def.typeName === "ZodOptional") {
+      const innerType = inferTypeFromSchema(def.innerType);
+      return `${innerType} | undefined`;
+    }
+
+    // Handle default (mark as optional but with default)
+    if (def.typeName === "ZodDefault") {
+      return inferTypeFromSchema(def.innerType);
+    }
+
+    // Handle coerce
+    if (def.typeName === "ZodNumber" || def.coerce === true) {
+      return "number";
+    }
+
+    // Handle basic types
+    switch (def.typeName) {
+      case "ZodString":
+        return "string";
+      case "ZodNumber":
+        return "number";
+      case "ZodBoolean":
+        return "boolean";
+      case "ZodEnum":
+        if (def.values && Array.isArray(def.values)) {
+          return (def.values as string[]).map((v) => `"${v}"`).join(" | ");
+        }
+        return "string";
+      case "ZodEffects":
+        return inferTypeFromSchema(def.schema);
+      default:
+        return "string";
+    }
+  }
+
+  // Standard Schema V1: fall back to string
+  return "string";
+}
+
+/**
+ * Check if schema is optional
+ */
+function isOptional(schema: unknown): boolean {
+  if (!schema || typeof schema !== "object") {
+    return false;
+  }
+
+  const s = schema as Record<string, unknown>;
+  if (s._def && typeof s._def === "object") {
+    const def = s._def as Record<string, unknown>;
+    return (
+      def.typeName === "ZodOptional" ||
+      def.typeName === "ZodDefault" ||
+      (def.typeName === "ZodEffects" && isOptional(def.schema))
+    );
+  }
+
+  return false;
+}
+
+async function typesAction(opts: TypesOptions): Promise<void> {
+  const cwd = opts.cwd || process.cwd();
+  const namespace = opts.namespace || "NodeJS";
+
+  console.log("");
+  p.intro(pc.bgCyan(pc.black(" 🔧 nevr-env types ")));
+
+  // Find config file
+  const configPath = opts.config || findConfigFile(cwd);
+
+  if (!configPath) {
+    p.log.error(
+      "No configuration file found. Run `npx nevr-env init` first."
+    );
+    process.exit(1);
+  }
+
+  p.log.info(`Using config: ${pc.dim(configPath)}`);
+
+  // Load config
+  const s = p.spinner();
+  s.start("Loading configuration...");
+
+  let config: unknown;
+  try {
+    config = await loadConfigFile(configPath, { cwd });
+  } catch (error) {
+    s.stop("Failed to load configuration");
+    p.log.error(String(error));
+    process.exit(1);
+  }
+
+  s.stop("Configuration loaded");
+
+  // Extract schema via metadata registry
+  const extracted = extractSchemaFromConfig(config);
+
+  // Collect all variables with type info
+  const variables = new Map<
+    string,
+    { type: string; optional: boolean; plugin?: string }
+  >();
+
+  // Plugin variables (have raw schema objects for type inference)
+  for (const plugin of extracted.plugins) {
+    if (plugin.schema) {
+      for (const [key, schema] of Object.entries(plugin.schema)) {
+        variables.set(key, {
+          type: inferTypeFromSchema(schema),
+          optional: isOptional(schema),
+          plugin: plugin.name,
+        });
+      }
+    }
+  }
+
+  // Server/client/shared variables
+  for (const [section, schemas] of Object.entries(extracted.schemas)) {
+    for (const [key, schema] of Object.entries(schemas)) {
+      if (!variables.has(key)) {
+        variables.set(key, {
+          type: inferTypeFromSchema(schema),
+          optional: isOptional(schema),
+        });
+      }
+    }
+  }
+
+  if (variables.size === 0) {
+    p.log.warn("No environment variables found in configuration.");
+    process.exit(0);
+  }
+
+  // Generate type definitions
+  const lines: string[] = [
+    "// Auto-generated by nevr-env",
+    "// Do not edit manually",
+    "",
+    "// Generated from your nevr-env configuration",
+    `// Source: ${configPath}`,
+    "",
+  ];
+
+  // Generate ProcessEnv interface augmentation
+  lines.push(`declare namespace ${namespace} {`);
+  lines.push("  interface ProcessEnv {");
+
+  // Group variables by plugin for comments
+  let currentPlugin: string | undefined;
+
+  for (const [key, info] of variables) {
+    if (info.plugin && info.plugin !== currentPlugin) {
+      if (currentPlugin) {
+        lines.push("");
+      }
+      lines.push(`    // ${info.plugin}`);
+      currentPlugin = info.plugin;
+    }
+
+    const optionalMark = info.optional ? "?" : "";
+    lines.push(`    ${key}${optionalMark}: ${info.type};`);
+  }
+
+  lines.push("  }");
+  lines.push("}");
+  lines.push("");
+
+  // Generate typed env object interface
+  lines.push("// Typed environment object interface");
+  lines.push("export interface Env {");
+
+  currentPlugin = undefined;
+  for (const [key, info] of variables) {
+    if (info.plugin && info.plugin !== currentPlugin) {
+      if (currentPlugin) {
+        lines.push("");
+      }
+      lines.push(`  // ${info.plugin}`);
+      currentPlugin = info.plugin;
+    }
+
+    const optionalMark = info.optional ? "?" : "";
+    lines.push(`  ${key}${optionalMark}: ${info.type};`);
+  }
+
+  lines.push("}");
+  lines.push("");
+
+  // Generate type guard
+  lines.push("// Type guard for runtime validation");
+  lines.push("export function isValidEnv(env: unknown): env is Env {");
+  lines.push("  if (!env || typeof env !== 'object') return false;");
+  lines.push("  const e = env as Record<string, unknown>;");
+
+  const requiredKeys = [...variables.entries()]
+    .filter(([, info]) => !info.optional)
+    .map(([key]) => key);
+
+  if (requiredKeys.length > 0) {
+    lines.push(`  const required = [${requiredKeys.map((k) => `"${k}"`).join(", ")}];`);
+    lines.push("  return required.every(key => key in e);");
+  } else {
+    lines.push("  return true;");
+  }
+
+  lines.push("}");
+  lines.push("");
+
+  // Determine output path
+  const outputPath = opts.output || join(cwd, "env.d.ts");
+
+  // Check if file exists — skip prompt in non-TTY or when --force is set
+  if (existsSync(outputPath) && !opts.force && process.stdout.isTTY) {
+    const overwrite = await p.confirm({
+      message: `${outputPath} already exists. Overwrite?`,
+      initialValue: true,
+    });
+
+    if (p.isCancel(overwrite) || !overwrite) {
+      p.cancel("Generation cancelled");
+      process.exit(0);
+    }
+  }
+
+  // Write file
+  writeFileSync(outputPath, lines.join("\n"), "utf-8");
+
+  p.log.success(`Generated ${pc.cyan(outputPath)}`);
+  p.log.info(`Defined ${pc.bold(variables.size)} variable(s)`);
+
+  console.log("");
+  p.log.info("Add this to your tsconfig.json:");
+  console.log(
+    pc.dim(`  {
+    "include": ["${outputPath}"]
+  }`)
+  );
+
+  p.outro(pc.green("✅ Type definitions generated!"));
+}
+
+export const types = new Command("types")
+  .description("Generate TypeScript type definitions from schema")
+  .option("--cwd <path>", "Working directory", process.cwd())
+  .option("-c, --config <path>", "Path to config file")
+  .option("-o, --output <path>", "Output file path", "env.d.ts")
+  .option("-n, --namespace <name>", "Namespace for ProcessEnv", "NodeJS")
+  .option("-f, --force", "Overwrite output file without prompting", false)
+  .action(typesAction);
+
+export default types;
