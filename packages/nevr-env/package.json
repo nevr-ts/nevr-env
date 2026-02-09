@@ -1,0 +1,167 @@
+{
+  "name": "nevr-env",
+  "version": "0.0.0",
+  "description": "Type-safe environment validation with plugins, vault, and CLI",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "nevr-env": "./dist/cli.js",
+    "nevr": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./plugins": {
+      "import": "./dist/plugins/index.js",
+      "types": "./dist/plugins/index.d.ts"
+    },
+    "./plugins/auth": {
+      "import": "./dist/plugins/auth/index.js",
+      "types": "./dist/plugins/auth/index.d.ts"
+    },
+    "./plugins/database": {
+      "import": "./dist/plugins/database/index.js",
+      "types": "./dist/plugins/database/index.d.ts"
+    },
+    "./plugins/payment": {
+      "import": "./dist/plugins/payment/index.js",
+      "types": "./dist/plugins/payment/index.d.ts"
+    },
+    "./plugins/ai": {
+      "import": "./dist/plugins/ai/index.js",
+      "types": "./dist/plugins/ai/index.d.ts"
+    },
+    "./plugins/email": {
+      "import": "./dist/plugins/email/index.js",
+      "types": "./dist/plugins/email/index.d.ts"
+    },
+    "./plugins/cloud": {
+      "import": "./dist/plugins/cloud/index.js",
+      "types": "./dist/plugins/cloud/index.d.ts"
+    },
+    "./plugins/postgres": {
+      "import": "./dist/plugins/postgres.js",
+      "types": "./dist/plugins/postgres.d.ts"
+    },
+    "./plugins/stripe": {
+      "import": "./dist/plugins/stripe.js",
+      "types": "./dist/plugins/stripe.d.ts"
+    },
+    "./plugins/redis": {
+      "import": "./dist/plugins/redis.js",
+      "types": "./dist/plugins/redis.d.ts"
+    },
+    "./plugins/openai": {
+      "import": "./dist/plugins/openai.js",
+      "types": "./dist/plugins/openai.d.ts"
+    },
+    "./plugins/resend": {
+      "import": "./dist/plugins/resend.js",
+      "types": "./dist/plugins/resend.d.ts"
+    },
+    "./plugins/supabase": {
+      "import": "./dist/plugins/supabase.js",
+      "types": "./dist/plugins/supabase.d.ts"
+    },
+    "./plugins/clerk": {
+      "import": "./dist/plugins/clerk.js",
+      "types": "./dist/plugins/clerk.d.ts"
+    },
+    "./plugins/auth0": {
+      "import": "./dist/plugins/auth0.js",
+      "types": "./dist/plugins/auth0.d.ts"
+    },
+    "./plugins/aws": {
+      "import": "./dist/plugins/aws.js",
+      "types": "./dist/plugins/aws.d.ts"
+    },
+    "./plugins/better-auth": {
+      "import": "./dist/plugins/better-auth.js",
+      "types": "./dist/plugins/better-auth.d.ts"
+    },
+    "./plugins/nextauth": {
+      "import": "./dist/plugins/nextauth.js",
+      "types": "./dist/plugins/nextauth.d.ts"
+    },
+    "./vault": {
+      "import": "./dist/vault.js",
+      "types": "./dist/vault.d.ts"
+    },
+    "./presets": {
+      "import": "./dist/presets/index.js",
+      "types": "./dist/presets/index.d.ts"
+    },
+    "./presets/vercel": {
+      "import": "./dist/presets/vercel.js",
+      "types": "./dist/presets/vercel.d.ts"
+    },
+    "./presets/netlify": {
+      "import": "./dist/presets/netlify.js",
+      "types": "./dist/presets/netlify.d.ts"
+    },
+    "./presets/railway": {
+      "import": "./dist/presets/railway.js",
+      "types": "./dist/presets/railway.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@nevr-env/core": "workspace:*"
+  },
+  "optionalDependencies": {
+    "@nevr-env/cli": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18",
+    "zod": "^3.24.0",
+    "@types/node": "^22.0.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.22.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "env",
+    "environment",
+    "validation",
+    "type-safe",
+    "typescript",
+    "zod",
+    "vault",
+    "secrets",
+    "plugins"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "author": "Yalelet Dessalegn",
+  "homepage": "https://nevr-ts.github.io/nevr-env/",
+  "bugs": {
+    "url": "https://github.com/nevr-ts/nevr-env/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nevr-ts/nevr-env"
+  }
+}
