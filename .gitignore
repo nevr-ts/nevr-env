@@ -6,3 +6,5 @@ coverage/
 .env
 .env.*.local
 examples/
+docs/.vitepress/cache
+docs/.vitepress/dist
