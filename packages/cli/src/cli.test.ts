@@ -7,13 +7,12 @@
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { execSync } from "child_process";
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, cpSync, rmSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, rmSync } from "fs";
 import { join } from "path";
 
 // ── Helpers ──────────────────────────────────────────────────────
 
 const ROOT = join(import.meta.dirname, "../../..");
-const FIXTURE_SRC = join(ROOT, "examples/test-all-features");
 const FIXTURE = join(ROOT, ".test-cli-fixture");
 const CLI = join(ROOT, "packages/cli/dist/index.js");
 
@@ -35,10 +34,61 @@ function cli(args: string, opts: { cwd?: string; env?: Record<string, string> } 
 // ── Setup / Teardown ─────────────────────────────────────────────
 
 beforeAll(() => {
-  // Copy fixture to temp dir to avoid mutating the original
+  // Generate fixture inline so we don't depend on examples/
   if (existsSync(FIXTURE)) rmSync(FIXTURE, { recursive: true, force: true });
-  mkdirSync(FIXTURE, { recursive: true });
-  cpSync(FIXTURE_SRC, FIXTURE, { recursive: true });
+  mkdirSync(join(FIXTURE, "src"), { recursive: true });
+
+  writeFileSync(join(FIXTURE, "package.json"), JSON.stringify({
+    name: "nevr-env-test-fixture",
+    version: "1.0.0",
+    private: true,
+    type: "module",
+  }, null, 2));
+
+  writeFileSync(join(FIXTURE, ".env"), [
+    "NODE_ENV=development",
+    "DATABASE_URL=postgresql://user:pass@localhost:5432/testdb",
+    "STRIPE_SECRET_KEY=sk_test_fake123",
+    "STRIPE_PUBLISHABLE_KEY=pk_test_fake123",
+    "STRIPE_WEBHOOK_SECRET=whsec_testfake123",
+    "NEXT_PUBLIC_APP_URL=http://localhost:3000",
+    "API_SECRET=test-secret-key",
+    "PORT=3000",
+    "",
+  ].join("\n"));
+
+  writeFileSync(join(FIXTURE, ".env.example"), [
+    "NODE_ENV=",
+    "DATABASE_URL=",
+    "STRIPE_SECRET_KEY=",
+    "API_SECRET=",
+    "PORT=",
+    "NEXT_PUBLIC_APP_URL=",
+    "",
+  ].join("\n"));
+
+  writeFileSync(join(FIXTURE, "src/env.ts"), [
+    'import { createEnv } from "../../packages/core/src/index";',
+    'import { z } from "zod";',
+    "",
+    "export const env = createEnv({",
+    "  server: {",
+    '    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),',
+    "    DATABASE_URL: z.string().url(),",
+    "    STRIPE_SECRET_KEY: z.string().min(1),",
+    "    API_SECRET: z.string().min(1),",
+    "    PORT: z.coerce.number().default(3000),",
+    "  },",
+    "  client: {",
+    "    NEXT_PUBLIC_APP_URL: z.string().url(),",
+    "  },",
+    "  shared: {},",
+    '  clientPrefix: "NEXT_PUBLIC_",',
+    "  runtimeEnv: process.env,",
+    "  emptyStringAsUndefined: true,",
+    "});",
+    "",
+  ].join("\n"));
 
   // Ensure CLI is built
   if (!existsSync(CLI)) {
