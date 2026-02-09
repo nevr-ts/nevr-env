@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@nevr-env/core": ["./packages/core/src/index.ts"],
+      "@nevr-env/cli": ["./packages/cli/src/index.ts"],
+      "@nevr-env/vault": ["./packages/vault/src/index.ts"],
+      "@nevr-env/presets": ["./packages/presets/src/index.ts"],
+      "@nevr-env/postgres": ["./packages/plugins/postgres/src/index.ts"],
+      "@nevr-env/stripe": ["./packages/plugins/stripe/src/index.ts"],
+      "@nevr-env/redis": ["./packages/plugins/redis/src/index.ts"],
+      "@nevr-env/openai": ["./packages/plugins/openai/src/index.ts"],
+      "@nevr-env/resend": ["./packages/plugins/resend/src/index.ts"],
+      "nevr-env": ["./packages/nevr-env/src/index.ts"],
+      "nevr-env/*": ["./packages/nevr-env/src/*"]
+    }
+  }
+}
