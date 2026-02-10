@@ -1,6 +1,6 @@
 {
   "name": "nevr-env",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "The Environment Lifecycle Framework - Stop managing .env files, start managing your application lifecycle.",
   "repository": {

@@ -1,6 +1,6 @@
 {
   "name": "nevr-env",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Type-safe environment validation with plugins, vault, and CLI",
   "type": "module",
   "main": "./dist/index.js",

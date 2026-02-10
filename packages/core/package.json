@@ -1,6 +1,6 @@
 {
   "name": "@nevr-env/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Type-safe environment validation with plugin system and Proxy pattern",
   "type": "module",
   "main": "./dist/index.js",
