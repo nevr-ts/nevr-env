@@ -329,48 +329,48 @@ describe("diff", () => {
 });
 
 describe("encrypt and decrypt", () => {
-  it("should encrypt and decrypt content", () => {
+  it("should encrypt and decrypt content", async () => {
     const content = "API_KEY=secret\nDB_URL=postgres://localhost";
     const key = generateKey();
 
-    const vault = encrypt(content, key);
-    const decrypted = decrypt(vault, key);
+    const vault = await encrypt(content, key);
+    const decrypted = await decrypt(vault, key);
 
     expect(decrypted).toBe(content);
   });
 
-  it("should fail decryption with wrong key", () => {
+  it("should fail decryption with wrong key", async () => {
     const content = "API_KEY=secret";
     const key = generateKey();
     const wrongKey = generateKey();
 
-    const vault = encrypt(content, key);
+    const vault = await encrypt(content, key);
 
-    expect(() => decrypt(vault, wrongKey)).toThrow();
+    await expect(decrypt(vault, wrongKey)).rejects.toThrow();
   });
 
-  it("should detect HMAC tampering", () => {
+  it("should detect HMAC tampering", async () => {
     const content = "API_KEY=secret";
     const key = generateKey();
 
-    const vault = encrypt(content, key);
+    const vault = await encrypt(content, key);
     // Tamper with the HMAC
     vault.hmac = "a".repeat(64);
 
-    expect(() => decrypt(vault, key)).toThrow(/HMAC|tamper/i);
+    await expect(decrypt(vault, key)).rejects.toThrow(/HMAC|tamper/i);
   });
 
-  it("should detect ciphertext tampering via HMAC", () => {
+  it("should detect ciphertext tampering via HMAC", async () => {
     const content = "API_KEY=secret";
     const key = generateKey();
 
-    const vault = encrypt(content, key);
+    const vault = await encrypt(content, key);
     // Tamper with encrypted data
     const enc = Buffer.from(vault.encrypted, "hex");
     enc[0] ^= 0xff;
     vault.encrypted = enc.toString("hex");
 
-    expect(() => decrypt(vault, key)).toThrow();
+    await expect(decrypt(vault, key)).rejects.toThrow();
   });
 });
 

@@ -244,7 +244,7 @@ export async function push(options: VaultOptions = {}): Promise<{
   }
 
   // Encrypt
-  const vault = encrypt(envContent, key, existingMetadata);
+  const vault = await encrypt(envContent, key, existingMetadata);
 
   // Add creator info if available
   if (!vault.metadata.createdBy) {
@@ -316,7 +316,7 @@ export async function pull(options: VaultOptions = {}): Promise<{
   }
 
   // Decrypt
-  const envContent = decrypt(vault, key);
+  const envContent = await decrypt(vault, key);
 
   // Write .env file
   writeFileSync(envPath, envContent, "utf8");
@@ -359,7 +359,7 @@ export async function sync(options: VaultOptions = {}): Promise<{
     existingMetadata = vault.metadata;
 
     try {
-      const decrypted = decrypt(vault, key);
+      const decrypted = await decrypt(vault, key);
       vaultEnv = parseEnv(decrypted);
     } catch {
       // Can't decrypt vault, just use local
@@ -395,7 +395,7 @@ export async function sync(options: VaultOptions = {}): Promise<{
   writeFileSync(envPath, envContent, "utf8");
 
   // Push merged to vault
-  const vault = encrypt(envContent, key, existingMetadata);
+  const vault = await encrypt(envContent, key, existingMetadata);
   writeFileSync(vaultPath, JSON.stringify(vault, null, 2), "utf8");
 
   return { added, updated, fromVault };
@@ -461,7 +461,7 @@ export async function diff(options: VaultOptions = {}): Promise<{
   let vaultEnv: Record<string, string> = {};
   if (existsSync(vaultPath)) {
     const vault = JSON.parse(readFileSync(vaultPath, "utf8")) as VaultFile;
-    const decrypted = decrypt(vault, key);
+    const decrypted = await decrypt(vault, key);
     vaultEnv = parseEnv(decrypted);
   }
 
