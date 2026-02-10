@@ -109,6 +109,23 @@ export interface RotationConfig {
   onStaleSecret?: (record: RotationRecord, ageDays: number) => void;
 }
 
+// ─── Vault Types ────────────────────────────────────────────────────
+
+export interface VaultFile {
+  version: number;
+  salt: string;
+  iv: string;
+  authTag: string;
+  encrypted: string;
+  hmac: string;
+  metadata: {
+    createdAt: string;
+    updatedAt: string;
+    createdBy?: string;
+    variables: number;
+  };
+}
+
 // ─── CI Types ──────────────────────────────────────────────────────
 
 export interface SchemaConfig {
@@ -155,6 +172,15 @@ export interface CoreFunctions {
     platform: CIPlatform,
     options?: Record<string, unknown>
   ) => string;
+
+  // Vault crypto
+  generateKey: () => string;
+  encrypt: (
+    envContent: string,
+    password: string,
+    existingMetadata?: VaultFile["metadata"]
+  ) => Promise<VaultFile>;
+  decrypt: (vault: VaultFile, password: string) => Promise<string>;
 }
 
 // ─── Loader ────────────────────────────────────────────────────────
@@ -183,6 +209,9 @@ export async function loadCore(): Promise<CoreFunctions> {
     checkRotationStatus: mod.checkRotationStatus,
     recordRotation: mod.recordRotation,
     generateCIConfig: mod.generateCIConfig,
+    generateKey: mod.generateKey,
+    encrypt: mod.encrypt,
+    decrypt: mod.decrypt,
   };
 
   return _cached;
