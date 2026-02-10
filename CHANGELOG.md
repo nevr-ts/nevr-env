@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-02-10
+
+### Changed
+
+- **Vault crypto is now async** — `encrypt()` and `decrypt()` return `Promise` instead of blocking the event loop. PBKDF2 key derivation runs in the libuv thread pool via `crypto.pbkdf2` (async) instead of `pbkdf2Sync`. **Breaking:** callers must `await` these functions.
+- **Single source of truth** — Vault crypto primitives (`encrypt`, `decrypt`, `generateKey`) consolidated into `@nevr-env/core`. The CLI and `nevr-env` umbrella package now import from core instead of bundling their own copies.
+
+### Added
+
+- `@nevr-env/core` now exports vault crypto: `encrypt`, `decrypt`, `generateKey`, `parseEnv`, `stringifyEnv`, `mergeEnv`, `validateKey`, `getKeyFromEnv`, `VaultError`, `VaultFile`
+
 ## [0.1.0] - 2026-02-09
 
 ### Added

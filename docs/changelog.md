@@ -5,6 +5,32 @@ All notable changes to nevr-env will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-10
+
+### Breaking Changes
+
+- **Vault `encrypt()` and `decrypt()` are now async** — Both functions return a `Promise` instead of a synchronous result. Update all call sites to use `await`:
+  ```ts
+  // Before (0.1.0)
+  const vault = encrypt(content, key);
+  const plain = decrypt(vault, key);
+
+  // After (0.2.0)
+  const vault = await encrypt(content, key);
+  const plain = await decrypt(vault, key);
+  ```
+
+### Changed
+
+- PBKDF2 key derivation now runs asynchronously in the libuv thread pool, keeping the event loop free during the 600K-iteration derivation
+- Vault crypto primitives consolidated into `@nevr-env/core` as the single source of truth. The `nevr-env` umbrella re-exports them unchanged.
+
+### Added
+
+- `@nevr-env/core` now exports vault utilities: `encrypt`, `decrypt`, `generateKey`, `parseEnv`, `stringifyEnv`, `mergeEnv`, `validateKey`, `getKeyFromEnv`, `VaultError`, `VaultFile`
+
+---
+
 ## [0.1.0] - 2026-02-09
 
 Initial public release.
