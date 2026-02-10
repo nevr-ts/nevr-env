@@ -146,6 +146,21 @@ export type {
   SchemaConfig,
 } from "./ci-integration";
 
+// Vault cryptography
+export {
+  generateKey,
+  encrypt,
+  decrypt,
+  parseEnv,
+  stringifyEnv,
+  mergeEnv,
+  validateKey,
+  getKeyFromEnv,
+  VaultError,
+} from "./vault-crypto";
+
+export type { VaultFile } from "./vault-crypto";
+
 // Auto-migration
 export {
   renameVar,
